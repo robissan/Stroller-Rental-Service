@@ -1,6 +1,6 @@
-# [Project name]
+# Little Roam
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A mobile stroller-rental concept for destination travel and monthly everyday use.
 
 ## Run & Operate
 
@@ -26,11 +26,14 @@ _Populate as you build — short repo map plus pointers to the source-of-truth f
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The first release is a device-local pilot prototype, not a commercial rental service. **Why:** the PRD leaves fulfillment partnerships, safety validation, payment policies, and commercial feasibility unresolved.
+- Prices, destinations, equipment suitability, and service policies are illustrative pilot assumptions. Do not turn demo requests into claims of actual availability, reservations, payment, safety certification, or fulfillment.
+- This is an independent development of a 2016 course concept, not an endorsed Bugaboo initiative. Do not imply a manufacturer partnership.
+- Circular product return is an intended operating model, not evidence of environmental benefit. Environmental claims require lifecycle assessment.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Travel stroller booking, Basic/Premium monthly plans, accessory requests, growth exchanges, and return scheduling. All requests are stored locally; no live inventory, payments, or fulfillment is connected.
 
 ## User preferences
 
