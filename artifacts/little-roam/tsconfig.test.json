@@ -1,0 +1,12 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "types": ["node"],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["lib/roam.test.ts", "lib/roam.ts"]
+}

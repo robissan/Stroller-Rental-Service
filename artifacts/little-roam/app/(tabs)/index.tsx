@@ -5,7 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import { Btn, Card, Chip, DemoBanner, Footer, H1, H2, Label, P, Pill, Press, Screen, StrollerArt } from '@/components/ui';
 import { useColors } from '@/hooks/useColors';
 import { F } from '@/constants/theme';
-import { DAILY_RATE, DESTINATIONS, PLANS, STROLLERS } from '@/lib/roam';
+import { DAILY_RATE, DESTINATIONS, MIN_TRAVEL_DAYS, PLANS, STROLLERS } from '@/lib/roam';
 
 export default function Explore() {
   const c = useColors();
@@ -24,7 +24,7 @@ export default function Explore() {
           <View style={{ flex: 1, gap: 8 }}>
             <Label color={c.accent}>Stroller as a service</Label>
             <H2 color={c.pineForeground}>Leave the stroller at home.</H2>
-            <P color="#C9D7CF">Concept models waiting at your handoff point, so you carry less and explore more.</P>
+            <P color={c.pineForeground}>Pick a concept model and record a handoff point. This pilot only saves the request on this device.</P>
           </View>
           <View style={{ marginRight: -14 }}><StrollerArt size={110} color={c.pineForeground} accent={c.primary} /></View>
         </View>
@@ -35,7 +35,7 @@ export default function Explore() {
         <View style={{ gap: 8 }}>
           <Pill label="Flying Solutions" tone="sky" />
           <H2>For a trip</H2>
-          <P>Pick up at an airport desk or hotel and keep it for your dates. Pilot rate {DAILY_RATE} EUR a day, shown as an upfront total.</P>
+          <P>Pick up at a sample airport desk or hotel and keep it for your dates. Pilot rate {DAILY_RATE} EUR a day, {MIN_TRAVEL_DAYS}-day minimum, shown as an upfront total.</P>
           <Btn testID="start-travel" label="Plan a trip" icon="send" onPress={() => router.push({ pathname: '/book', params: { mode: 'travel', dest } })} />
         </View>
       </Card>
@@ -43,7 +43,7 @@ export default function Explore() {
         <View style={{ gap: 8 }}>
           <Pill label="Pop-up Solutions" tone="marigold" />
           <H2>For the month</H2>
-          <P color="#3F6360">A monthly stroller at home, from {PLANS[0].price} EUR a month, with a documented exchange request when your child outgrows it.</P>
+          <P color={c.pine}>A monthly stroller at home, from {PLANS[0].price} EUR a month. Update age and weight when your child grows, then exchange to a model that fits.</P>
           <Btn testID="start-monthly" kind="pine" label="Compare plans" icon="repeat" onPress={() => router.push('/plans')} />
         </View>
       </Card>
@@ -70,7 +70,7 @@ export default function Explore() {
           <Press key={s.id} testID={`stroller-${s.id}`} onPress={() => setOpen(o ? null : s.id)}>
             <Card>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <View style={{ backgroundColor: c.muted, borderRadius: 14, padding: 6 }}><StrollerArt size={64} color={c.pine} accent={c.accent} /></View>
+                <View style={{ backgroundColor: c.muted, borderRadius: 14, padding: 6 }}><StrollerArt size={64} color={c.pine} accent={c.accent} model={s.id} /></View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontFamily: F.display, fontSize: 17, color: c.foreground }}>{s.name}</Text>
                   <P size={13}>{s.minM}-{s.maxM} months, up to {s.maxKg} kg</P>

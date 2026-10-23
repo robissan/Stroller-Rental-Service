@@ -7,4 +7,6 @@
  */
 export interface HealthStatus {
   status: string;
+  /** States that this check does not read device-local bookings. */
+  detail: string;
 }

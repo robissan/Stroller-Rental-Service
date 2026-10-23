@@ -12,6 +12,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import { Feather } from '@expo/vector-icons';
 import { reloadAppAsync } from 'expo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { STORAGE_KEY } from '@/lib/roam';
 
 export type ErrorFallbackProps = {
   error: Error;
@@ -29,6 +31,16 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
       await reloadAppAsync();
     } catch (restartError) {
       console.error('Failed to restart app:', restartError);
+      resetError();
+    }
+  };
+
+  const handleErase = async () => {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEY);
+      await reloadAppAsync();
+    } catch (restartError) {
+      console.error('Failed to erase demo data:', restartError);
       resetError();
     }
   };
@@ -73,11 +85,13 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
         </Text>
 
         <Text style={[styles.message, { color: colors.mutedForeground }]}>
-          Please reload the app to continue.
+          Please reload the app to continue. If a saved booking is unreadable, erase the demo data stored on this device and start again.
         </Text>
 
         <Pressable
           onPress={handleRestart}
+          accessibilityRole="button"
+          accessibilityLabel="Try again"
           style={({ pressed }) => [
             styles.button,
             {
@@ -91,6 +105,24 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
             style={[styles.buttonText, { color: colors.primaryForeground }]}
           >
             Try Again
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={handleErase}
+          accessibilityRole="button"
+          accessibilityLabel="Erase demo data and reload"
+          style={({ pressed }) => [
+            styles.button,
+            {
+              backgroundColor: 'transparent',
+              borderWidth: 1.5,
+              borderColor: colors.pine,
+              opacity: pressed ? 0.9 : 1,
+            },
+          ]}
+        >
+          <Text style={[styles.buttonText, { color: colors.pine }]}>
+            Erase demo data and reload
           </Text>
         </Pressable>
       </View>
