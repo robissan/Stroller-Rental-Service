@@ -59,15 +59,20 @@ export const addDays = (s: string, n: number) => { const d = parseISO(s); d.setD
 export const daysInclusive = (a: string, b: string) => Math.round((parseISO(b).getTime() - parseISO(a).getTime()) / 86400000) + 1;
 export const fmtDate = (s: string) => parseISO(s).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
+function fleetLimits(): string {
+  return STROLLERS.map((s) => `${s.name} ${s.minM}–${s.maxM} months, up to ${s.maxKg} kg`).join('; ');
+}
+
 export function validateTrip(mode: Mode, start: string, end: string, monthsTxt: string, kgTxt: string): string | null {
   const m = Number(monthsTxt), kg = Number(kgTxt);
   if (monthsTxt.trim() === '' || !isFinite(m) || m < 0 || m > 60) return 'Enter your child age in months (0 to 60).';
   if (kgTxt.trim() === '' || !isFinite(kg) || kg <= 0 || kg > 40) return 'Enter your child weight in kg (up to 40).';
+  if (!STROLLERS.some((s) => suitability(s, m, kg).ok)) return `No model covers this child. Fleet limits: ${fleetLimits()}.`;
   if (!start) return mode === 'travel' ? 'Choose a start date.' : 'Choose a plan start date.';
   if (start < todayISO()) return 'Start date cannot be in the past.';
   if (mode === 'travel') {
     if (!end) return 'Choose an end date.';
-    if (end <= start) return 'End date must be after the start date.';
+    if (end < start) return 'End date cannot be before the start date.';
   }
   return null;
 }
@@ -77,8 +82,9 @@ export function quote(p: { mode: Mode; start: string; end: string; strollerId: s
   const accs = p.accIds.map(accById).filter(Boolean) as typeof ACCESSORIES;
   const lines: { label: string; amount: number; note?: string }[] = [];
   if (p.mode === 'travel') {
-    const days = p.start && p.end && p.end > p.start ? daysInclusive(p.start, p.end) : 0;
-    lines.push({ label: `Base rate, ${days} days x ${DAILY_RATE}`, amount: days * DAILY_RATE });
+    const days = p.start && p.end && p.end >= p.start ? daysInclusive(p.start, p.end) : 0;
+    const dayWord = days === 1 ? 'day' : 'days';
+    lines.push({ label: `Base rate, ${days} ${dayWord} x ${DAILY_RATE}`, amount: days * DAILY_RATE });
     if (s && s.extra > 0) lines.push({ label: `${s.name} model supplement, ${days} x ${s.extra}`, amount: days * s.extra });
     accs.forEach((a) => lines.push({ label: a.name, amount: a.price }));
   } else {

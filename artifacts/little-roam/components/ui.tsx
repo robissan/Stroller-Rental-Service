@@ -28,13 +28,14 @@ export function Press({ children, style, onPress, disabled, testID }: { children
   );
 }
 
-export function Btn({ label, onPress, kind = 'primary', icon, disabled, testID, small }: { label: string; onPress: () => void; kind?: 'primary' | 'pine' | 'ghost' | 'danger'; icon?: keyof typeof Feather.glyphMap; disabled?: boolean; testID?: string; small?: boolean }) {
+export function Btn({ label, onPress, kind = 'primary', icon, disabled, testID, small, light }: { label: string; onPress: () => void; kind?: 'primary' | 'pine' | 'ghost' | 'danger'; icon?: keyof typeof Feather.glyphMap; disabled?: boolean; testID?: string; small?: boolean; light?: boolean }) {
   const c = useColors();
   const bg = kind === 'primary' ? c.primary : kind === 'pine' ? c.pine : kind === 'danger' ? c.destructive : 'transparent';
-  const fg = kind === 'ghost' ? c.pine : c.primaryForeground;
+  const fg = kind === 'ghost' ? (light ? c.pineForeground : c.pine) : c.primaryForeground;
+  const border = kind === 'ghost' && light ? c.pineForeground : c.pine;
   return (
     <Press testID={testID} onPress={onPress} disabled={disabled}
-      style={{ backgroundColor: bg, borderRadius: 999, paddingVertical: small ? 10 : 15, paddingHorizontal: small ? 16 : 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: kind === 'ghost' ? 1.5 : 0, borderColor: c.pine }}>
+      style={{ backgroundColor: bg, borderRadius: 999, paddingVertical: small ? 10 : 15, paddingHorizontal: small ? 16 : 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: kind === 'ghost' ? 1.5 : 0, borderColor: border }}>
       {icon ? <Feather name={icon} size={16} color={fg} /> : null}
       <Text style={{ color: fg, fontFamily: F.bold, fontSize: small ? 13 : 15 }}>{label}</Text>
     </Press>

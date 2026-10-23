@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Text, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
+import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Btn, Card, Chip, DatePicker, DemoBanner, ErrorNote, Field, H1, H2, Label, P, Pill, Press, Row, useTop } from '@/components/ui';
@@ -38,6 +38,11 @@ export default function Book() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState<boolean>(false);
   const [savedId, setSavedId] = useState<string | null>(null);
+  const [confirmLeave, setConfirmLeave] = useState<boolean>(false);
+  const savedIdRef = useRef<string | null>(null);
+  const allowLeave = useRef<boolean>(false);
+  const navigation = useNavigation();
+  savedIdRef.current = savedId;
 
   const dd = DESTINATIONS.find((d) => d.id === dest)!;
   const q = quote({ mode, start, end, strollerId, accIds, plan });
@@ -76,7 +81,17 @@ export default function Book() {
   };
 
   const pickStroller = (id: string) => { setStrollerId(id); setAccIds((a) => a.filter((x) => accById(x)?.compat.includes(id))); };
-  const close = () => router.back();
+  const leave = () => router.back();
+  const discard = () => { allowLeave.current = true; setConfirmLeave(false); router.back(); };
+
+  useEffect(() => {
+    const sub = navigation.addListener('beforeRemove', (e) => {
+      if (allowLeave.current || savedIdRef.current) return;
+      e.preventDefault();
+      setConfirmLeave(true);
+    });
+    return sub;
+  }, [navigation]);
 
   if (savedId) {
     return (
@@ -85,7 +100,7 @@ export default function Book() {
         <H1 color={c.pineForeground}>Demo booking saved</H1>
         <P color="#C9D7CF" size={15}>This is a DEMO record stored on this device. Nothing was paid, reserved or sent. No real stroller is waiting for you.</P>
         <Btn testID="view-rental" label="View in My rentals" onPress={() => { router.dismissAll?.(); router.replace({ pathname: '/rental/[id]', params: { id: savedId } }); }} />
-        <Btn testID="done-close" kind="ghost" label="Close" onPress={close} />
+        <Btn testID="done-close" kind="ghost" light label="Close" onPress={leave} />
       </View>
     );
   }
@@ -101,7 +116,7 @@ export default function Book() {
       <View style={{ paddingTop: top, paddingHorizontal: 20, paddingBottom: 8 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View><Label>Step {step + 1} of 5</Label><H2>{STEPS[step]}</H2></View>
-          <Press testID="book-close" onPress={close}><Feather name="x" size={24} color={c.foreground} /></Press>
+          <Press testID="book-close" onPress={() => setConfirmLeave(true)}><Feather name="x" size={24} color={c.foreground} /></Press>
         </View>
         {bar}
       </View>
@@ -133,10 +148,10 @@ export default function Book() {
               key={which}
               testID="date-picker"
               value={which === 'start' || mode === 'monthly' ? start : end}
-              min={which === 'end' && start ? addDays(start, 1) : today}
+              min={which === 'end' && start ? (mode === 'travel' ? start : addDays(start, 1)) : today}
               onChange={(d) => {
                 setError(null);
-                if (which === 'start' || mode === 'monthly') { setStart(d); if (end && end <= d) setEnd(''); if (mode === 'travel') setWhich('end'); }
+                if (which === 'start' || mode === 'monthly') { setStart(d); if (end && end < d) setEnd(''); if (mode === 'travel') setWhich('end'); }
                 else setEnd(d);
               }}
             />
@@ -240,12 +255,26 @@ export default function Book() {
           </>
         ) : null}
 
-        <ErrorNote testID="book-error" text={error} />
       </KeyboardAwareScrollViewCompat>
-      <View style={{ flexDirection: 'row', gap: 10, padding: 16, paddingBottom: Math.max(ins.bottom, 16), borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.background }}>
-        {step > 0 ? <View style={{ flex: 1 }}><Btn testID="book-back" kind="ghost" label="Back" onPress={() => { setError(null); setStep(step - 1); }} /></View> : null}
-        <View style={{ flex: 2 }}><Btn testID="book-next" disabled={saving} label={step === 4 ? (saving ? 'Saving...' : 'Save DEMO booking') : 'Continue'} onPress={next} /></View>
+      <View style={{ gap: 10, padding: 16, paddingBottom: Math.max(ins.bottom, 16), borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.background }}>
+        <ErrorNote testID="book-error" text={error} />
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          {step > 0 ? <View style={{ flex: 1 }}><Btn testID="book-back" kind="ghost" label="Back" onPress={() => { setError(null); setStep(step - 1); }} /></View> : null}
+          <View style={{ flex: 2 }}><Btn testID="book-next" disabled={saving} label={step === 4 ? (saving ? 'Saving...' : 'Save DEMO booking') : 'Continue'} onPress={next} /></View>
+        </View>
       </View>
+      {confirmLeave ? (
+        <View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, justifyContent: 'flex-end', zIndex: 30 }}>
+          <Pressable testID="discard-backdrop" onPress={() => setConfirmLeave(false)} style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(42,36,51,0.5)' }} />
+          <View testID="sheet-discard" style={{ backgroundColor: c.background, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 20, paddingBottom: Math.max(ins.bottom, 20) + 8, gap: 14 }}>
+            <View style={{ alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: c.border }} />
+            <H2>Discard this booking?</H2>
+            <P>Leaving now throws away the dates, child details and choices on this form. Nothing has been saved on this device.</P>
+            <Btn testID="confirm-discard" kind="danger" label="Yes, discard" onPress={discard} />
+            <Btn testID="keep-editing" kind="ghost" label="Keep editing" onPress={() => setConfirmLeave(false)} />
+          </View>
+        </View>
+      ) : null}
     </View>
   );
 }
