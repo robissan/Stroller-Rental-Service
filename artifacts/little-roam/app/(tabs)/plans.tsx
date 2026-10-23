@@ -5,7 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import { Btn, Card, DemoBanner, Footer, H1, H2, Label, P, Pill, Screen } from '@/components/ui';
 import { useColors } from '@/hooks/useColors';
 import { F } from '@/constants/theme';
-import { PLANS } from '@/lib/roam';
+import { BASIC_PRICE, EXCHANGE_FEE, PLANS, PREMIUM_ACCESSORY_CREDIT, PREMIUM_DELTA, PREMIUM_PRICE } from '@/lib/roam';
 
 export default function Plans() {
   const c = useColors();
@@ -13,16 +13,17 @@ export default function Plans() {
     <Screen testID="plans-screen">
       <View><Label>Pop-up Solutions</Label><H1>A stroller by the month</H1></View>
       <DemoBanner />
+      <P>A month in this pilot is 30 days. Premium costs {PREMIUM_DELTA} EUR more than Basic ({PREMIUM_PRICE} instead of {BASIC_PRICE}) because that difference buys a {PREMIUM_ACCESSORY_CREDIT} EUR accessory credit every paid month, plus one free exchange per paid month instead of one per six months.</P>
       {PLANS.map((p) => {
         const prem = p.id === 'premium';
         const fg = prem ? c.pineForeground : c.foreground;
         return (
           <Card key={p.id} tone={prem ? 'pine' : undefined} style={{ gap: 12 }}>
-            {prem ? <Pill label="Accessories included" tone="marigold" /> : null}
+            {prem ? <Pill label={`${PREMIUM_ACCESSORY_CREDIT} EUR credit each month`} tone="marigold" /> : null}
             <H2 color={fg}>{p.name}</H2>
             <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4 }}>
               <Text style={{ fontFamily: F.display, fontSize: 44, color: fg }}>{p.price}</Text>
-              <P color={prem ? '#C9D7CF' : undefined} style={{ marginBottom: 8 }}>EUR / month</P>
+              <P color={prem ? c.pineForeground : undefined} style={{ marginBottom: 8 }}>EUR / month</P>
             </View>
             {p.items.map((i) => (
               <View key={i} style={{ flexDirection: 'row', gap: 10 }}>
@@ -36,7 +37,7 @@ export default function Plans() {
       })}
       <Card tone="sky">
         <H2>How exchanges work</H2>
-        <P color="#35525C" style={{ marginTop: 6 }}>One free exchange request per 6 months. Each additional request is 15 EUR (a pricing hypothesis). The target is under 7 days. In this pilot a request is only documented with a status, never fulfilled.</P>
+        <P color={c.pine} style={{ marginTop: 6 }}>Basic: one free exchange request in a 6-month window, then {EXCHANGE_FEE} EUR (a pricing hypothesis). Premium: one free exchange for each paid month, then the same {EXCHANGE_FEE} EUR. A request swaps the active model on this device. It is not fulfilled.</P>
       </Card>
       <Footer />
     </Screen>

@@ -16,10 +16,10 @@ paths:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
+      description: Reports that the API process is up. It does not read Little Roam bookings, which stay on the device.
       responses:
         "200":
-          description: Healthy
+          description: Process is up. Product data is not checked.
           content:
             application/json:
               schema:
@@ -31,6 +31,10 @@ components:
       properties:
         status:
           type: string
+        detail:
+          type: string
+          description: States that this check does not read device-local bookings.
       required:
         - status
+        - detail
 
