@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Cut the film clips into the frame strip the page scrubs through.
-# Usage: ./cut-frames.sh clip-1.mp4 clip-2.mp4 clip-3.mp4   (needs ffmpeg)
+# Usage: ./cut-frames.sh clip-1.mp4 clip-2.mp4 clip-3.mp4   (needs ffmpeg, python3 with Pillow and numpy)
 set -euo pipefail
 cd "$(dirname "$0")"
 fps=12
@@ -21,4 +21,5 @@ done
 mkdir -p frames
 find frames -name 'f-*.webp' -exec mv {} "$tmp/$i/" \;
 mv "$tmp"/f-*.webp frames/
+python3 recolor.py frames >&2   # lilac studio backdrop -> app cream
 echo "const FILM = /*FILM*/{\"count\":$n,\"bounds\":[$bounds]}/*END*/;"

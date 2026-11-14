@@ -3,149 +3,168 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Little Roam: borrow the stroller</title>
+<title>Little Roam: rent a stroller for a trip or by the month</title>
 <style>
-@font-face{font-family:"Bagel Fat One";src:url(fonts/bagel-fat-one-latin-400-normal.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"Cormorant Garamond";font-weight:500;src:url(fonts/cormorant-garamond-latin-500-normal.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"Cormorant Garamond";font-weight:500;font-style:italic;src:url(fonts/cormorant-garamond-latin-500-italic.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"Cormorant Garamond";font-weight:600;src:url(fonts/cormorant-garamond-latin-600-normal.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"Cormorant Garamond";font-weight:600;font-style:italic;src:url(fonts/cormorant-garamond-latin-600-italic.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"Fraunces";font-weight:400;src:url(fonts/fraunces-latin-400-normal.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"Fraunces";font-weight:600;src:url(fonts/fraunces-latin-600-normal.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"DM Sans";font-weight:400;src:url(fonts/dm-sans-latin-400-normal.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"DM Sans";font-weight:500;src:url(fonts/dm-sans-latin-500-normal.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"DM Sans";font-weight:700;src:url(fonts/dm-sans-latin-700-normal.woff2) format("woff2");font-display:swap}
+/* Tokens from artifacts/little-roam/constants/colors.ts and theme.ts */
 :root{
-  --lilac:#D0C8F6; --deep:#B9AFEC; --ox:#4A0E1A; --mustard:#D4A80F; --paper:#F4F0FF;
-  --fat:"Bagel Fat One", "Arial Black", sans-serif;
-  --thin:"Cormorant Garamond", Georgia, serif;
-  --gut:clamp(18px,3vw,48px);
+  --bg:#F7F0E6; --card:#FFFBF5; --border:#E4D8C6; --muted:#EFE5D6;
+  --fg:#2A2433; --sub:#6A615A;
+  --rust:#9A3412; --pine:#214A47; --pine-fg:#F7F0E6;
+  --sage:#DCE8DA; --sky:#CFE3EA; --marigold:#F2B84B;
+  --r:18px;
+  --display:"Fraunces", Georgia, serif;
+  --body:"DM Sans", system-ui, sans-serif;
+  --gut:clamp(20px,3vw,48px);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{background:var(--lilac);color:var(--ox);-webkit-text-size-adjust:100%}
-body{font-family:var(--thin);font-weight:500;font-size:clamp(20px,1.5vw,24px);line-height:1.36;overflow-x:hidden}
+html{background:var(--bg);color:var(--fg);-webkit-text-size-adjust:100%}
+body{font-family:var(--body);font-size:17px;line-height:1.5;overflow-x:hidden}
 a{color:inherit}
-:focus-visible{outline:3px solid var(--ox);outline-offset:4px;border-radius:2px}
-.fat{font-family:var(--fat);font-weight:400;line-height:.95;letter-spacing:-.005em}
+:focus-visible{outline:2.5px solid var(--rust);outline-offset:3px;border-radius:6px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-.wrap{max-width:74rem;margin:0 auto;padding:0 var(--gut)}
-section h2.fat{text-wrap:balance;font-size:clamp(38px,5vw,76px);text-align:center;max-width:16ch;margin:0 auto .7em}
+.wrap{max-width:70rem;margin:0 auto;padding:0 var(--gut)}
+h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.head{text-align:center;max-width:36rem;margin:0 auto 40px}
+.head h2{font-size:clamp(30px,3.6vw,44px);line-height:1.12}
+.head p{color:var(--sub);margin-top:10px;font-size:18px}
+.pill{display:inline-block;font-weight:700;font-size:13px;line-height:1;padding:7px 12px;border-radius:999px;background:var(--sage);color:var(--pine)}
+.pill.sky{background:var(--sky)} .pill.mari{background:var(--marigold);color:var(--fg)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 24px;border-radius:999px;background:var(--rust);color:#FFFBF5;font-weight:700;font-size:16px;text-decoration:none;border:0;cursor:pointer;transition:transform .15s,background .15s}
+.btn:hover{background:#7f2a0e} .btn:active{transform:scale(.97)}
+.ico{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 
-.top{position:absolute;inset:0 0 auto 0;z-index:30;display:flex;justify-content:space-between;align-items:center;padding:20px var(--gut)}
+/* demo banner, as in the app */
+.demo{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--marigold);color:var(--fg);font-weight:500;font-size:14.5px;padding:10px var(--gut);text-align:center}
+
+.top{position:absolute;inset:0 0 auto 0;z-index:30;display:flex;justify-content:space-between;align-items:center;padding:18px var(--gut)}
 .top a{text-decoration:none}
-.mark{font-family:var(--fat);font-size:22px;line-height:1}
-.top nav{display:flex;gap:clamp(14px,2.2vw,34px);font-style:italic;font-size:20px;line-height:1.15}
-.top nav a:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.mark{font-family:var(--display);font-weight:600;font-size:22px;letter-spacing:-.02em;color:var(--pine)}
+.top nav{display:flex;gap:28px;font-weight:500;font-size:15px}
+.top nav a:hover{color:var(--rust)}
 
-/* ---------- the film: everything on the centre line ---------- */
+/* ---------- film ---------- */
 .film{position:relative;height:520vh}
 .stage{position:sticky;top:0;height:100svh;overflow:hidden}
 #fx{position:absolute;inset:0;width:100%;height:100%;display:block}
-.giant{position:absolute;inset:26svh 3vw auto 3vw;display:flex;justify-content:space-between;font-size:12vw;white-space:nowrap;color:var(--ox);will-change:transform;user-select:none;pointer-events:none}
-.plate{position:absolute;left:50%;top:0;height:75svh;aspect-ratio:3/4;transform:translateX(-50%);perspective:1400px}
+.giant{position:absolute;inset:27svh 3.5vw auto 3.5vw;display:flex;justify-content:space-between;font-family:var(--display);font-weight:600;letter-spacing:-.04em;font-size:11.5vw;line-height:1;white-space:nowrap;color:var(--pine);will-change:transform;user-select:none;pointer-events:none}
+.plate{position:absolute;left:50%;top:2svh;height:72svh;aspect-ratio:3/4;transform:translateX(-50%);perspective:1400px}
 .plate .tilt{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform;
-  -webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 52%,#000 80%,transparent 100%);mask-image:radial-gradient(ellipse 50% 50% at 50% 52%,#000 80%,transparent 100%)}
+  -webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 52%,#000 74%,transparent 100%);mask-image:radial-gradient(ellipse 50% 50% at 50% 52%,#000 74%,transparent 100%)}
 .plate canvas,.plate img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.chapters{z-index:4;position:absolute;left:50%;bottom:6svh;transform:translateX(-50%);width:min(40rem,calc(100vw - 2*var(--gut)));height:24svh;text-align:center}
-.ch{position:absolute;inset:auto 0 0 0;will-change:transform,opacity}
-.ch h2{text-wrap:balance;font-family:var(--fat);font-weight:400;font-size:clamp(30px,3.3vw,52px);line-height:.98;margin-bottom:.3em}
-.ch p{max-width:34rem;margin:0 auto}
-.ch .price{font-family:var(--fat);font-size:clamp(22px,1.9vw,30px);line-height:1;display:inline-block;margin:.55em .5em 0 0}
-.btn{display:inline-block;margin-top:.8em;font-family:var(--fat);font-size:19px;line-height:1;text-decoration:none;color:var(--paper);background:var(--ox);padding:15px 24px 14px;border-radius:999px;transition:background .15s,color .15s}
-.btn:hover{background:var(--mustard);color:var(--ox)}
-.ticks{z-index:5;position:absolute;left:50%;bottom:1.8svh;transform:translateX(-50%);display:flex;gap:10px;list-style:none}
-.ticks li{width:9px;height:9px;border-radius:9px;border:1.5px solid var(--ox);transition:width .3s,background .3s}
-.ticks li.on{background:var(--ox);width:30px}
+.chapters{z-index:4;position:absolute;left:50%;bottom:8svh;transform:translateX(-50%);width:min(34rem,calc(100vw - 2*var(--gut)));height:24svh;text-align:center}
+.ch{position:absolute;inset:auto 0 0 0;will-change:transform,opacity;display:flex;flex-direction:column;align-items:center;gap:10px}
+.ch h2{font-size:clamp(30px,3.4vw,46px);line-height:1.08}
+.ch p{color:var(--sub);font-size:18px;max-width:28rem}
+.ch .price{font-family:var(--display);font-weight:600;font-size:22px;color:var(--fg)}
+.ticks{z-index:5;position:absolute;left:50%;bottom:3svh;transform:translateX(-50%);display:flex;gap:8px;list-style:none}
+.ticks li{width:8px;height:8px;border-radius:8px;background:var(--border);transition:width .3s,background .3s}
+.ticks li.on{background:var(--pine);width:26px}
 
-/* ---------- prices: three even columns ---------- */
-.prices{padding:16svh 0 14svh}
-.tariff{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.8vw,26px)}
-.tariff article{background:var(--paper);border-radius:28px;padding:clamp(22px,2.4vw,36px);text-align:center}
-.tariff h3{font-family:var(--thin);font-style:italic;font-weight:600;font-size:1.2em;line-height:1.1}
-.tariff .n{font-family:var(--fat);font-size:clamp(50px,5.4vw,84px);line-height:1;display:block;margin:.22em 0 .08em}
-.tariff .unit{font-style:italic;display:block;margin-bottom:.9em}
-.tariff ul{list-style:none;text-align:left}
-.tariff li{padding:.42em 0;border-top:1px solid rgba(74,14,26,.22)}
-.fine{margin:2.2em auto 0;max-width:38rem;font-style:italic;text-align:center}
+/* ---------- prices ---------- */
+.prices{padding:110px 0 90px}
+.tariff{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:stretch}
+.plan{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:26px;display:flex;flex-direction:column;gap:6px}
+.plan.pine{background:var(--pine);border-color:var(--pine);color:var(--pine-fg)}
+.plan h3{font-size:22px;margin-top:10px}
+.plan .n{font-family:var(--display);font-weight:600;font-size:52px;line-height:1;letter-spacing:-.03em;margin-top:4px}
+.plan .unit{color:var(--sub);font-size:15px}
+.plan.pine .unit{color:#C9D3CF}
+.plan ul{list-style:none;margin-top:16px;border-top:1px solid var(--border);padding-top:14px;display:grid;gap:10px}
+.plan.pine ul{border-color:rgba(247,240,230,.22)}
+.plan li{display:flex;gap:10px;align-items:flex-start;font-size:16px;line-height:1.4}
+.plan li .ico{color:var(--pine);margin-top:2px}
+.plan.pine li .ico{color:var(--marigold)}
+.fine{text-align:center;color:var(--sub);font-size:15px;margin-top:22px}
 
-/* ---------- how flying works: five even steps ---------- */
-.steps{padding:6svh 0 16svh}
-.steps ol{list-style:none;counter-reset:s;display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(14px,1.8vw,28px)}
-.steps li{counter-increment:s;border-top:3px solid var(--ox);padding-top:14px}
-.steps li::before{content:counter(s);font-family:var(--fat);font-size:clamp(44px,4.4vw,68px);line-height:1;color:var(--mustard);display:block;margin-bottom:.12em}
-.steps li b{font-family:var(--thin);font-weight:600;font-style:italic;font-size:1.15em;display:block;line-height:1.12;margin-bottom:.25em}
+/* ---------- steps ---------- */
+.steps{padding:40px 0 100px}
+.steps ol{list-style:none;counter-reset:s;display:grid;grid-template-columns:repeat(5,1fr);gap:18px}
+.steps li{counter-increment:s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.steps li::before{content:counter(s);display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:var(--sage);color:var(--pine);font-family:var(--display);font-weight:600;font-size:22px;margin-bottom:8px}
+.steps b{font-weight:700;font-size:17px;line-height:1.3}
+.steps span{color:var(--sub);font-size:15.5px;line-height:1.45}
 
-/* ---------- pilot notes ---------- */
-.notes{background:var(--deep);padding:14svh 0}
-.notes dl{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(22px,3vw,48px) clamp(28px,5vw,80px);max-width:58rem;margin:0 auto}
-.notes dt{font-weight:600;font-style:italic;font-size:1.2em;line-height:1.15}
-.notes dd{margin-top:.2em}
+/* ---------- open questions ---------- */
+.open{padding:0 0 110px}
+.open .box{background:var(--sky);border-radius:var(--r);padding:clamp(28px,4vw,52px)}
+.open .head{margin-bottom:30px}
+.open dl{display:grid;grid-template-columns:repeat(2,1fr);gap:22px 48px;max-width:52rem;margin:0 auto}
+.open dt{font-weight:700;color:var(--pine)}
+.open dd{color:var(--fg);margin-top:2px}
 
-/* ---------- give it back ---------- */
-.end{background:var(--ox);color:var(--lilac);padding:16svh 0 5svh;text-align:center}
-.end h2{font-size:clamp(60px,13vw,220px);color:var(--mustard);line-height:.9}
-.end form{margin:7svh auto 0;max-width:26rem;text-align:left}
-.end label{display:block;font-style:italic;margin-bottom:.5em;text-align:center}
-.end .row{display:flex;gap:10px;border-bottom:2px solid var(--lilac);padding-bottom:8px}
-.end input{flex:1;min-width:0;background:none;border:0;color:var(--paper);font:inherit;font-size:1.1em}
-.end input::placeholder{color:rgba(208,200,246,.55);font-style:italic}
-.end input:focus{outline:none}
-.end .row:focus-within{border-color:var(--mustard)}
-.end button{font-family:var(--fat);font-size:18px;background:var(--mustard);color:var(--ox);border:0;border-radius:999px;padding:12px 20px 11px;cursor:pointer}
-.end button:hover{background:var(--paper)}
-.end output{display:block;min-height:1.6em;margin-top:.7em;font-style:italic;text-align:center}
-.end footer{margin-top:14svh;font-size:17px;font-style:italic}
-.end footer p{max-width:38rem;margin:0 auto .4em}
+/* ---------- sign up ---------- */
+.end{background:var(--pine);color:var(--pine-fg);padding:100px 0 44px;text-align:center}
+.end h2{font-size:clamp(34px,4.4vw,56px);line-height:1.08}
+.end > .wrap > p{color:#C9D3CF;margin-top:10px;font-size:18px}
+.end form{margin:30px auto 0;max-width:28rem;display:flex;gap:10px}
+.end input{flex:1;min-width:0;font:inherit;font-size:16px;color:var(--fg);background:var(--card);border:1.5px solid var(--card);border-radius:14px;padding:12px 14px}
+.end input:focus{outline:none;border-color:var(--marigold)}
+.end output{display:block;min-height:1.5em;margin-top:12px;color:var(--marigold);font-weight:500}
+.end footer{margin-top:64px;color:#C9D3CF;font-size:14px;max-width:40rem;margin-left:auto;margin-right:auto}
 
 @media (max-width:900px){
-  .steps ol{grid-template-columns:repeat(2,1fr)}
-  .steps li:last-child{grid-column:1 / -1}
+  .steps ol{grid-template-columns:repeat(3,1fr);row-gap:30px}
 }
 @media (max-width:720px){
   .top nav{display:none}
   .giant{display:none}
-  .plate{top:6svh;height:62svh}
-  .chapters{height:30svh;bottom:5svh}
+  .plate{top:8svh;height:56svh}
+  .chapters{height:30svh;bottom:7svh}
   .tariff{grid-template-columns:1fr}
-  .notes dl{grid-template-columns:1fr}
-  .steps ol{grid-template-columns:1fr}
+  .steps ol{grid-template-columns:1fr 1fr}
+  .steps li:last-child{grid-column:1 / -1}
+  .open dl{grid-template-columns:1fr}
+  .end form{flex-direction:column}
 }
 @media (prefers-reduced-motion:reduce){ .btn,.ticks li{transition:none} }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+</svg>
 
-<header class="top">
-  <a class="mark" href="#top">little roam</a>
-  <nav aria-label="Sections">
-    <a href="#prices">prices</a>
-    <a href="#flying">how Flying works</a>
-    <a href="#pilot">what we don't know yet</a>
-  </nav>
-</header>
+<p class="demo"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg>Demo only. No stock, payments or deliveries behind this page.</p>
 
 <main id="top">
-<section class="film" id="film" aria-label="The stroller, turning, folding and growing">
+<section class="film" id="film" aria-label="The stroller turning, folding and changing to a carrycot">
   <div class="stage">
     <canvas id="fx" aria-hidden="true"></canvas>
-    <div class="giant fat" aria-hidden="true"><span>little</span><span>roam</span></div>
+    <header class="top">
+      <a class="mark" href="#top">Little Roam</a>
+      <nav aria-label="Sections"><a href="#prices">Prices</a><a href="#flying">How it works</a><a href="#open">Open questions</a></nav>
+    </header>
+    <div class="giant" aria-hidden="true"><span>little</span><span>roam</span></div>
     <div class="plate" aria-hidden="true"><div class="tilt"><img id="still" alt="" src="frames/f-000.webp"><canvas id="reel"></canvas></div></div>
 
     <div class="chapters">
       <div class="ch">
-        <h1 class="sr">Little Roam: rent a stroller instead of owning one</h1>
-        <h2>Borrow the stroller. Keep the kid.</h2>
-        <p>Rent one for a trip, waiting where you land, or by the month at home, swapped as your child grows.</p>
-        <a class="btn" href="#prices">See the prices</a>
+        <h1 class="sr">Little Roam: rent a stroller for a trip or by the month</h1>
+        <h2>Travel light. Roam longer.</h2>
+        <p>Rent a stroller for a trip, or by the month at home.</p>
+        <a class="btn" href="#prices">See prices</a>
       </div>
       <div class="ch">
-        <h2>It leaves when you're done.</h2>
-        <p>No hallway parking, no listing it online at midnight. The stroller goes back to be checked, cleaned and sent out again.</p>
+        <h2>Done with it? It goes back.</h2>
+        <p>Nothing to store or sell. We check it, clean it and send it out again.</p>
       </div>
       <div class="ch">
-        <h2>Flying: leave yours at home.</h2>
-        <p>Reserve a stroller near where you're staying. It's handed over when you arrive and collected before you fly back.</p>
-        <p><span class="price">€75 for 5 days</span>Rain cover or mosquito net, €10.</p>
+        <span class="pill sky">Flying Solutions</span>
+        <h2>For a trip</h2>
+        <p>Waiting near where you stay. Collected before you fly home.</p>
+        <span class="price">€75 for 5 days</span>
       </div>
       <div class="ch">
-        <h2>Pop-up: it grows when they do.</h2>
-        <p>A monthly stroller for home. Carrycot now, seat later. Ask for the next size when this one gets snug.</p>
-        <p><span class="price">€55 or €85 a month</span>Premium adds accessories.</p>
+        <span class="pill mari">Pop-up Solutions</span>
+        <h2>For the month</h2>
+        <p>Carrycot now, seat later. Swap models as your child grows.</p>
+        <span class="price">From €55 a month</span>
       </div>
     </div>
     <ol class="ticks" aria-hidden="true"><li class="on"></li><li></li><li></li><li></li></ol>
@@ -154,78 +173,79 @@ section h2.fat{text-wrap:balance;font-size:clamp(38px,5vw,76px);text-align:cente
 
 <section class="prices" id="prices">
   <div class="wrap">
-    <h2 class="fat">Three prices, no deposit.</h2>
+    <div class="head"><h2>Prices</h2><p>No deposit on any plan.</p></div>
     <div class="tariff">
-      <article>
-        <h3>Flying Solutions</h3>
+      <article class="plan">
+        <div><span class="pill sky">Flying Solutions</span></div>
+        <h3>Trip</h3>
         <span class="n">€75</span><span class="unit">for 5 days</span>
         <ul>
-          <li>One stroller, handed over near your destination</li>
-          <li>Rain cover or mosquito net for €10</li>
-          <li>Cancel free until 48 hours before handover</li>
+          <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>Handed over near your stay</li>
+          <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>Rain cover or mosquito net, +€10</li>
+          <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>Free cancellation up to 48 hours before</li>
         </ul>
       </article>
-      <article>
-        <h3>Pop-up Basic</h3>
+      <article class="plan">
+        <div><span class="pill">Pop-up Solutions</span></div>
+        <h3>Basic</h3>
         <span class="n">€55</span><span class="unit">a month</span>
         <ul>
-          <li>The stroller, nothing else</li>
-          <li>Change model as your child grows</li>
-          <li>Send it back when you're finished</li>
+          <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>One stroller at a time</li>
+          <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>Swap models as your child grows</li>
+          <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>Send it back when you're done</li>
         </ul>
       </article>
-      <article>
-        <h3>Pop-up Premium</h3>
+      <article class="plan pine">
+        <div><span class="pill mari">Pop-up Solutions</span></div>
+        <h3>Premium</h3>
         <span class="n">€85</span><span class="unit">a month</span>
         <ul>
-          <li>Everything in Basic</li>
-          <li>Accessories on request</li>
-          <li>Send it back when you're finished</li>
+          <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>Everything in Basic</li>
+          <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>Accessories when you ask</li>
         </ul>
       </article>
     </div>
-    <p class="fine">These are the prices we plan to test in the pilot, not offers. Damage is judged against the condition recorded at handover, and ordinary wear doesn't count.</p>
+    <p class="fine">Pilot prices we're testing, not offers. Normal wear is never charged.</p>
   </div>
 </section>
 
 <section class="steps" id="flying">
   <div class="wrap">
-    <h2 class="fat">Five steps to a stroller at the beach.</h2>
+    <div class="head"><h2>How Flying works</h2></div>
     <ol>
-      <li><b>Say where and when.</b>Enter your destination and dates. We tell you straight away if we serve it.</li>
-      <li><b>Pick the stroller.</b>Choose one that suits your child's age and weight, and add a rain cover or mosquito net.</li>
-      <li><b>Check the total.</b>You see the full price and the handover arrangement before you reserve.</li>
-      <li><b>Collect it nearby.</b>The stroller is handed to you close to where you're staying.</li>
-      <li><b>Hand it back.</b>We collect it at the agreed time. Nothing comes home in the hold.</li>
+      <li><b>Tell us where and when</b><span>We confirm we cover it.</span></li>
+      <li><b>Pick a stroller</b><span>Matched to your child's age and weight.</span></li>
+      <li><b>See the total</b><span>Price and handover, before you book.</span></li>
+      <li><b>Collect it nearby</b><span>Close to where you're staying.</span></li>
+      <li><b>Hand it back</b><span>We collect it. Nothing to fly home.</span></li>
     </ol>
   </div>
 </section>
 
-<section class="notes" id="pilot">
-  <div class="wrap">
-    <h2 class="fat">What we don't know yet.</h2>
+<section class="open" id="open">
+  <div class="wrap"><div class="box">
+    <div class="head"><h2>What we're still finding out</h2></div>
     <dl>
-      <div><dt>Which city.</dt><dd>The pilot runs in one EU city. We haven't picked it.</dd></div>
-      <div><dt>Whether the prices hold.</dt><dd>€75, €55 and €85 are starting guesses. A survey of about 200 parents and 20 to 30 interviews come first.</dd></div>
-      <div><dt>Whether renting is greener.</dt><dd>Returning a stroller doesn't prove lower emissions. Deliveries and cleaning could cancel the benefit, so we're measuring before we claim it.</dd></div>
-      <div><dt>Who makes the strollers.</dt><dd>Little Roam is an independent concept from a 2016 design course. It isn't affiliated with or endorsed by Bugaboo or any other manufacturer.</dd></div>
+      <div><dt>Which city</dt><dd>The pilot runs in one EU city. Not chosen yet.</dd></div>
+      <div><dt>If the prices work</dt><dd>We're asking about 200 parents and interviewing 20 to 30 first.</dd></div>
+      <div><dt>If renting is greener</dt><dd>Deliveries and cleaning count too. We'll measure before we claim it.</dd></div>
+      <div><dt>Who makes the strollers</dt><dd>Little Roam is independent. It isn't affiliated with Bugaboo or any maker.</dd></div>
     </dl>
-  </div>
+  </div></div>
 </section>
 </main>
 
 <section class="end" id="list">
   <div class="wrap">
-    <h2 class="fat">Give it back.</h2>
+    <h2>Hear which city we pick</h2>
+    <p>One email when the pilot city is chosen.</p>
     <form id="join" novalidate>
-      <label for="em">Hear when the pilot city is chosen</label>
-      <div class="row"><input id="em" type="email" autocomplete="email" placeholder="you@example.com" required><button type="submit">Tell me</button></div>
-      <output id="msg" for="em" aria-live="polite"></output>
+      <label class="sr" for="em">Email address</label>
+      <input id="em" type="email" autocomplete="email" placeholder="you@example.com" required>
+      <button class="btn" type="submit">Notify me</button>
     </form>
-    <footer>
-      <p>Little Roam is a demo. No stock, no payments and no deliveries exist behind this page. The stroller is a rendered image, not a product for sale.</p>
-      <p>Concept, 2016. Demo, 2026.</p>
-    </footer>
+    <output id="msg" for="em" aria-live="polite"></output>
+    <footer>Little Roam is an independent concept inspired by a 2016 design course. Prices, coverage and policies are illustrative. The stroller is a rendered image, not a product for sale.</footer>
   </div>
 </section>
 
@@ -278,7 +298,7 @@ const FILM = /*FILM*/{"count": 31, "bounds": [0, 10, 20, 30]}/*END*/;
     });
     ticks.forEach((el, i) => el.classList.toggle('on', i === active));
     // the wordmark climbs out of the frame as the stroller comes down the page
-    giant.style.transform = `translate3d(0, ${-prog * 46}svh, 0)`;
+    giant.style.transform = `translate3d(0, ${-prog * 12}svh, 0)`;
     tilt.style.transform = reduced ? '' : `rotateY(${px * -4}deg) rotateX(${py * 3}deg)`;
   }
 
@@ -307,12 +327,13 @@ void main(){
  vec2 q=uv*vec2(1.,1.)+vec2(0.,S*1.7);
  vec2 w=vec2(fbm(q*1.1+T*.03),fbm(q*1.1+4.2-T*.025));
  float f=fbm(q*.85+w*1.6+M*.12);
- vec3 pale=vec3(.890,.866,.985),deep=vec3(.725,.686,.925),must=vec3(.831,.659,.059);
- vec3 c=mix(vec3(.816,.784,.965),vec3(.690,.655,.898),smoothstep(.12,1.,gl_FragCoord.y/R.y));
+ vec3 cream=vec3(.969,.941,.902),sage=vec3(.863,.910,.855),sky=vec3(.812,.890,.918);
+ vec3 c=cream;
+ float cx=abs(gl_FragCoord.x/R.x-.5);
+ float keep=smoothstep(.15,.30,cx);            // keep the stroller column plain cream
  float px=1.5/R.y;
- c=mix(c,pale,smoothstep(.60,.60+px*3.,f)*.85);
- c=mix(c,deep,smoothstep(.70,.70+px*3.,f)*.8);
- c=mix(c,must,smoothstep(.79,.79+px*3.,f));
+ c=mix(c,sage,smoothstep(.60,.60+px*3.,f)*keep);
+ c=mix(c,sky,smoothstep(.71,.71+px*3.,f)*keep);
  c+= (h(gl_FragCoord.xy+T)-.5)*.018;
  gl_FragColor=vec4(c,1.);}`;
     const mk = (type, s) => { const o = gl.createShader(type); gl.shaderSource(o, s); gl.compileShader(o); return o; };
@@ -348,7 +369,7 @@ void main(){
   $('#join').addEventListener('submit', e => {
     e.preventDefault();
     const em = $('#em'), msg = $('#msg');
-    msg.textContent = em.validity.valid && em.value ? "This is a demo, so nothing was sent or saved. The list isn't open yet." : 'Enter an email address, like you@example.com.';
+    msg.textContent = em.validity.valid && em.value ? 'Demo only: nothing was sent or saved.' : 'Enter an email address, like you@example.com.';
   });
 })();
 </script>

@@ -1,6 +1,6 @@
 # Little Roam web demo
 
-A static, single-page demo for Little Roam: a scroll-scrubbed stroller film, a shader background, and the Flying and Pop-up offers from the PRD. No build step and no package; it is not part of the pnpm workspace.
+A static, single-page demo for Little Roam: a scroll-scrubbed stroller film, a shader background, and the Flying and Pop-up offers from the PRD. It uses the Expo app's tokens (colours from `constants/colors.ts`, Fraunces and DM Sans from `constants/theme.ts`, 18px radius, rust buttons, pine and sage cards, sky and marigold pills). No build step and no package; it is not part of the pnpm workspace.
 
 ## View it
 
@@ -17,7 +17,7 @@ The frames checked in are stand-ins: a dissolve between four low-resolution keyf
 
     ./cut-frames.sh clip-1.mp4 clip-2.mp4 clip-3.mp4
 
-It rewrites `frames/` and prints the `FILM` line to paste into `index.html`.
+It rewrites `frames/`, runs `recolor.py` to swap the renders' lilac studio backdrop for the app's cream, and prints the `FILM` line to paste into `index.html`. Needs ffmpeg, plus python3 with Pillow and numpy.
 
 ## Things to know
 
