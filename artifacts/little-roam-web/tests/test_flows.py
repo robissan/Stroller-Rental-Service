@@ -141,6 +141,11 @@ def test_landing_matches_prd_v2(desk, base):
     assert "€150 card hold" in desk.locator("#prices").inner_text()
     assert desk.locator("#prices .tag", has_text="Paused in the pilot").count() == 2
     expect(desk.locator(".steps li")).to_have_count(4)
+    proto = desk.locator("#prototype")
+    expect(proto.get_by_role("link", name="Open the app prototype")).to_have_attribute("href", "https://stroller-rental-service.replit.app")
+    expect(proto.get_by_role("link", name="See the code on GitHub")).to_have_attribute("href", "https://github.com/robissan/Stroller-Rental-Service")
+    proto.scroll_into_view_if_needed()
+    proto.screenshot(path=str(SHOTS / "00-landing-app-prototype.jpg"), type="jpeg", quality=60)
     assert [li.locator("b").inner_text() for li in desk.locator(".steps li").all()] == ["Check", "Book", "Receive", "Return"]
     shot(desk, "00-landing-hero", full=False)
     desk.locator("#prices").scroll_into_view_if_needed()

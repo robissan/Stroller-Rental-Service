@@ -19,6 +19,16 @@ Then open http://localhost:8000.
 | My bookings | `#trips` |
 | Back office | `#ops` |
 
+## Publish it
+
+The live site is served by GitHub Pages from the `gh-pages` branch, which holds a copy of this folder's site files.
+
+    ./publish.sh
+
+One-time setup: in the repo's Settings, under Pages, choose "Deploy from a branch", then `gh-pages` and `/ (root)`. The site is then at https://robissan.github.io/Stroller-Rental-Service/.
+
+The landing page links to the Expo prototype at https://stroller-rental-service.replit.app.
+
 ## Files
 
 - `index.html`: landing page and the scroll film.

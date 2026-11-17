@@ -128,6 +128,15 @@ h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-.02em;text-wrap
 .plan ul{margin-bottom:18px}
 .plan .more{font-weight:700;text-decoration:underline;text-underline-offset:3px}
 .end footer a{color:inherit}
+.proto{padding:0 0 110px}
+.proto .box{background:var(--sage);border-radius:var(--r);padding:clamp(28px,4vw,52px);display:grid;grid-template-columns:1fr auto;gap:24px 48px;align-items:center}
+.proto h2{font-size:clamp(26px,3vw,36px);line-height:1.12}
+.proto p{margin-top:10px;max-width:34rem}
+.proto ol{margin:14px 0 0 1.2em;display:grid;gap:4px}
+.proto .acts{display:grid;gap:12px;justify-items:start}
+.proto .ghost{background:transparent;color:var(--pine);box-shadow:inset 0 0 0 1.5px var(--pine)}
+.proto .ghost:hover{background:#cfe0cc}
+@media (max-width:720px){ .proto .box{grid-template-columns:1fr} }
 </style>
 <link rel="stylesheet" href="css/app.css">
 </head>
@@ -146,7 +155,7 @@ h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-.02em;text-wrap
     <canvas id="fx" aria-hidden="true"></canvas>
     <header class="top">
       <a class="mark" href="#top">Little Roam</a>
-      <nav aria-label="Sections"><a href="#prices">Prices</a><a href="#how">How it works</a><a href="#open">Open questions</a><a href="#trips">My bookings</a></nav>
+      <nav aria-label="Sections"><a href="#prices">Prices</a><a href="#how">How it works</a><a href="#open">Open questions</a><a href="#prototype">App prototype</a><a href="#trips">My bookings</a></nav>
     </header>
     <div class="giant" aria-hidden="true"><span>little</span><span>roam</span></div>
     <div class="plate" aria-hidden="true"><div class="tilt"><img id="still" alt="" src="frames/f-000.webp"><canvas id="reel"></canvas></div></div>
@@ -244,6 +253,22 @@ h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-.02em;text-wrap
       <div><dt>When monthly plans open</dt><dd>They're paused. At €55 a month Basic loses money.</dd></div>
       <div><dt>Who makes the strollers</dt><dd>Little Roam is independent. No stroller brand is a partner.</dd></div>
     </dl>
+  </div></div>
+</section>
+<section class="proto" id="prototype">
+  <div class="wrap"><div class="box">
+    <div>
+      <h2>Try the app prototype on your phone</h2>
+      <p>An earlier Little Roam prototype runs as a phone app. It's a demo too, and some of its prices differ from this page.</p>
+      <ol>
+        <li>Install Expo Go, a free app for testing apps.</li>
+        <li>Open the prototype page and scan its QR code.</li>
+      </ol>
+    </div>
+    <div class="acts">
+      <a class="btn" href="https://stroller-rental-service.replit.app" target="_blank" rel="noopener">Open the app prototype</a>
+      <a class="btn ghost" href="https://github.com/robissan/Stroller-Rental-Service" target="_blank" rel="noopener">See the code on GitHub</a>
+    </div>
   </div></div>
 </section>
 </main>
