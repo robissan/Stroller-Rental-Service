@@ -85,14 +85,50 @@ def db(page, expr):
     return page.evaluate(f"(() => {{ const db = RoamApp.db; return {expr}; }})()")
 
 
+def day_btn(page, iso):
+    return page.locator(f'dialog.cal button[data-day="{iso}"]')
+
+
+def goto_month(page, iso):
+    for _ in range(12):
+        if page.locator("dialog.cal .cal-in").get_attribute("data-month") == iso[:7]:
+            return
+        page.locator('dialog.cal [data-cal="next"]').click()
+    raise AssertionError(f"month {iso[:7]} not reached")
+
+
+def pick(page, start, end, hw=None, cw=None, save=True):
+    """Choose a range, and optionally the 2-hour windows, in the open date sheet."""
+    expect(page.locator("dialog.cal")).to_be_visible()
+    goto_month(page, start)
+    day_btn(page, start).click()
+    goto_month(page, end)
+    day_btn(page, end).click()
+    for name, value in (("hw", hw), ("cw", cw)):
+        if value:
+            page.locator(f'dialog.cal input[name="{name}"][value="{value}"] + span').click()
+    if save:
+        page.locator('dialog.cal [data-cal="save"]').click()
+        expect(page.locator("dialog.cal")).to_be_hidden()
+
+
+def details(page):
+    """From the availability result to the review screen."""
+    page.get_by_role("button", name="Continue").click()
+    page.locator("#app").get_by_label("Name").fill("Ana Ruiz")
+    page.locator("#app").get_by_label("Email").fill("ana@example.com")
+    page.locator("#app").get_by_label("Phone").fill("+34 600 111 222")
+    page.get_by_role("button", name="Review price").click()
+
+
 def check(page, postcode="08008", start="2027-03-15", end="2027-03-19", age="18", method="delivery"):
     if method == "pickup":
         page.locator("#app").get_by_label("I'll pick it up").check()
     else:
         page.locator("#app").get_by_label("Address").fill("Carrer de Mallorca 250")
         page.locator("#app").get_by_label("Postcode").fill(postcode)
-    page.locator("#app").get_by_label("First day").fill(start)
-    page.locator("#app").get_by_label("Last day").fill(end)
+    page.locator("#when").click()
+    pick(page, start, end)
     page.locator("#app").get_by_label("Child's age").select_option(age)
     page.get_by_role("button", name="Check availability").click()
 
@@ -192,12 +228,40 @@ def test_story1_no_unit_free_shows_not_available_and_logs_denied_demand(page, ba
     shot(page, "s1-check-no-units")
 
 
-def test_story1_dates_outside_3_to_14_days_are_rejected_with_a_reason(page, base):
+def test_story1_date_sheet_only_offers_3_to_14_day_rentals_with_windows(page, base):
+    """Mobbin: Turo picks the range and both times in one sheet; Uber greys out days it can't serve."""
     page.goto(base + "#flying")
-    check(page, end="2027-03-16")
-    expect(page.locator("#start-err")).to_have_text("Rentals are 3 days or longer.")
+    page.get_by_role("button", name="Check availability").click()
+    expect(page.locator("#when-err")).to_have_text("Choose your dates.")
+    page.locator("#when").click()
+    day_btn(page, "2027-03-15").click()
+    expect(page.locator(".cal-sum")).to_contain_text("Now pick your last day, 3 to 14 days in all")
+    for d, off in [("2027-03-16", True), ("2027-03-17", False), ("2027-03-28", False), ("2027-03-29", True)]:
+        if off:
+            expect(day_btn(page, d)).to_be_disabled()
+        else:
+            expect(day_btn(page, d)).to_be_enabled()
+    expect(page.locator('dialog.cal [data-cal="save"]')).to_be_disabled()
+    day_btn(page, "2027-03-19").click()
+    expect(page.locator(".cal-sum")).to_have_text("Mon 15 Mar to Fri 19 Mar: 5 days, both days count")
+    page.locator('dialog.cal input[name="hw"][value="16:00"] + span').click()
+    shot(page, "s1-date-sheet", full=False)
+    page.locator('dialog.cal [data-cal="save"]').click()
+    expect(page.locator("#when")).to_contain_text("Mon 15 Mar, 16:00 to 18:00")
+    expect(page.locator("#when")).to_contain_text("to Fri 19 Mar, 10:00 to 12:00")
     assert db(page, "db.searches.length") == 0
-    shot(page, "s1-check-date-error")
+
+
+def test_timing_a_friday_evening_booking_cannot_start_before_we_confirm(page, base):
+    """Bookings are confirmed within 2 working hours, so a Friday 17:30 booking can't arrive before Tuesday."""
+    page.goto(base + "#flying")
+    set_now(page, "2027-03-05T17:30:00")
+    page.locator("#when").click()
+    for d in ["2027-03-06", "2027-03-07", "2027-03-08"]:
+        expect(day_btn(page, d)).to_be_disabled()
+    expect(day_btn(page, "2027-03-09")).to_be_enabled()
+    expect(page.locator("dialog.cal")).to_contain_text("Earliest delivery: Tue 9 Mar")
+    shot(page, "s1-date-sheet-earliest", full=False)
 
 
 # ---------------------------------------------------------------- story 2
@@ -286,8 +350,8 @@ def test_story5_book_with_only_the_needed_fields_then_confirmation_with_handoff_
     page.get_by_role("button", name="Pay €75").click()
     page.wait_for_selector("#confirmed")
     took = time.monotonic() - t0
-    personal = asked - {"method", "acc", "hw", "cw"}               # choices, not personal data
-    assert personal == {"address", "postcode", "start", "end", "age", "name", "email", "phone"}
+    personal = asked - {"method", "acc"}               # choices, not personal data; dates come from the date sheet
+    assert personal == {"address", "postcode", "age", "name", "email", "phone"}
     assert took < 180, f"scripted booking took {took:.1f}s"
     assert page.locator("#app form input").count() == 0, "no card fields: payment is simulated"
     mail = page.locator("#mail")
@@ -316,17 +380,53 @@ def test_story6_change_dates_from_the_confirmation_link(page, base):
     bid = book(page, base)
     page.locator("#mail").get_by_role("link", name="Change or cancel this booking").click()
     page.get_by_role("button", name="Change dates").click()
-    page.locator("#app").get_by_label("First day").fill("2027-03-20")
-    page.locator("#app").get_by_label("Last day").fill("2027-03-26")
-    shot(page, "s6-change-dates")
-    page.get_by_role("button", name="Save new dates").click()
+    expect(page.locator("#cal-title")).to_have_text("Change dates")
+    pick(page, "2027-03-20", "2027-03-26", save=False)
+    shot(page, "s6-change-dates", full=False)
+    page.locator('dialog.cal [data-cal="save"]').click()
     expect(page.locator(".flash")).to_have_text("Dates changed. €30 charged.")
     expect(page.locator("#handoff")).to_contain_text("Sat 20 Mar")
     assert db(page, f"Roam.booking(db, '{bid}').money.charged") == 105
     page.get_by_role("button", name="Change dates").click()
-    page.locator("#app").get_by_label("Last day").fill("2027-03-21")
-    page.get_by_role("button", name="Save new dates").click()
-    expect(page.locator("#start-err")).to_have_text("Rentals are 3 days or longer.")
+    day_btn(page, "2027-03-22").click()
+    expect(day_btn(page, "2027-03-23")).to_be_disabled()
+
+
+# ---------------------------------------------------------------- price and deadline next to the button
+
+def test_running_total_sits_next_to_the_main_button(page, base):
+    """Mobbin: Careem puts the total in the book button; Airbnb and Starbucks keep it beside the main action."""
+    page.goto(base + "#flying")
+    check(page)
+    expect(page.locator("#model .pb-sum b")).to_have_text("€75")
+    page.get_by_role("button", name="Continue").click()
+    bar = page.locator("#paybar")
+    expect(bar.locator("[data-running]")).to_have_text("€75")
+    page.locator("#app").get_by_label("Rain cover").check()
+    expect(bar.locator("[data-running]")).to_have_text("€85")
+    expect(bar.locator("[data-running-note]")).to_have_text("5 days + rain cover")
+    page.locator("#app").get_by_label("Mosquito net").check()
+    expect(bar.locator("[data-running]")).to_have_text("€95")
+    shot(page, "s3-running-total", full=False)
+
+
+def test_review_leads_with_the_exact_free_cancellation_deadline(page, base):
+    """Mobbin: Turo and Airbnb state the free-cancellation cut-off as a date and time at checkout."""
+    page.goto(base + "#flying")
+    check(page)
+    details(page)
+    expect(page.locator("#deadline")).to_contain_text("Free cancellation until Sat 13 Mar, 10:00")
+    expect(page.locator(".pb-legal")).to_contain_text("By paying you agree to pay the total shown")
+    expect(page.locator(".terms-box")).not_to_have_attribute("open", "")
+    shot(page, "s4-review-deadline", full=False)
+
+
+def test_review_says_plainly_when_free_cancellation_has_already_passed(page, base):
+    page.goto(base + "#flying")
+    check(page, start="2027-03-02", end="2027-03-04")
+    details(page)
+    expect(page.locator("#deadline")).to_contain_text("Cancelling gives 50% back")
+    expect(page.locator("#deadline")).to_contain_text("less than 48 hours away")
 
 
 def test_story6_cancel_applies_the_refund_rule_automatically(page, base):
@@ -638,6 +738,7 @@ def test_handoff_option_pickup_needs_no_address(page, base):
     check(page, method="pickup")
     expect(page.locator('[data-result="yes"]')).to_contain_text("have one ready to pick up")
     expect(page.locator("#app").get_by_label("Address")).to_have_count(0)
-    page.get_by_role("button", name="Continue").click()
+    details(page)
     expect(page.locator("#app")).to_contain_text("Partner pickup point, Eixample, Barcelona")
+    expect(page.locator("#deadline")).to_contain_text("until pickup")
     shot(page, "s1-pickup-option")

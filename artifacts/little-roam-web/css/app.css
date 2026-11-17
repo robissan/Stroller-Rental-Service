@@ -126,3 +126,53 @@ table.fleet{width:100%;border-collapse:collapse;font-size:15px}
   .app-top nav{justify-content:flex-start}
   .card{padding:18px}
 }
+
+/* date and time sheet */
+.when{display:grid;gap:2px;width:100%;min-height:48px;text-align:left;font:inherit;font-size:16px;color:var(--fg);background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:11px 14px;cursor:pointer}
+.when:hover{border-color:var(--pine)}
+.when span{color:var(--sub);font-size:15px}
+.when .ph{color:var(--sub);font-size:16px}
+.field.bad .when{border-color:var(--rust)}
+dialog.cal{border:0;padding:0;border-radius:var(--r);width:min(25rem,calc(100vw - 24px));max-height:calc(100vh - 24px);background:var(--card);color:var(--fg);box-shadow:0 20px 60px rgba(42,36,51,.28)}
+dialog.cal::backdrop{background:rgba(42,36,51,.45)}
+.cal-in{padding:20px 20px 0;display:grid;gap:14px;max-height:calc(100vh - 24px);overflow:auto}
+.cal-head{display:flex;justify-content:space-between;align-items:center}
+.cal-head h2{font-size:22px}
+.cal .x{width:40px;height:40px;border-radius:50%;border:0;background:var(--muted);color:var(--fg);font:inherit;font-size:15px;cursor:pointer}
+.cal-sum{font-weight:700;min-height:1.5em}
+.cal-nav{display:flex;justify-content:space-between;align-items:center}
+.cal-nav button{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--border);background:var(--card);color:var(--fg);font:inherit;font-size:20px;line-height:1;cursor:pointer}
+.cal-nav button[disabled]{opacity:.35;cursor:default}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);row-gap:4px}
+.wd{text-align:center;font-size:13px;font-weight:700;color:var(--sub);padding-bottom:4px}
+.day{height:44px;border:0;background:transparent;font:inherit;font-size:16px;color:var(--fg);cursor:pointer}
+.day:not(.s):not(.e):not(.r):hover:not([disabled]){background:var(--muted);border-radius:999px}
+.day[disabled]{color:#C2B8AC;cursor:not-allowed}
+.day.r{background:var(--sage)}
+.day.s,.day.e{background:var(--pine);color:var(--pine-fg);font-weight:700;border-radius:999px}
+.chips{display:grid;gap:8px}
+.chips div{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{position:relative;cursor:pointer}
+.chips input{position:absolute;opacity:0;pointer-events:none}
+.chips span{display:inline-block;padding:9px 12px;border-radius:999px;border:1.5px solid var(--border);background:var(--card);font-size:14.5px;font-weight:500}
+.chips input:checked + span{background:var(--pine);border-color:var(--pine);color:var(--pine-fg)}
+.chips input:focus-visible + span{outline:2.5px solid var(--rust);outline-offset:2px}
+.cal-foot{position:sticky;bottom:0;display:flex;justify-content:space-between;gap:10px;background:var(--card);padding:12px 0 20px;border-top:1px solid var(--border)}
+@media (max-width:520px){
+  dialog.cal{width:100vw;max-width:100vw;margin:auto 0 0;border-radius:22px 22px 0 0;max-height:94vh}
+  .cal-in{max-height:94vh}
+}
+
+/* running total next to the main button */
+.pb-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pb-sum{display:grid;line-height:1.25}
+.pb-sum b{font-family:var(--display);font-weight:600;font-size:26px;letter-spacing:-.02em}
+.pb-sum span{color:var(--sub);font-size:14px}
+.paybar{position:sticky;bottom:0;z-index:5;display:grid;gap:6px;background:var(--bg);border-top:1px solid var(--border);margin:0 calc(-1 * var(--gut));padding:12px var(--gut) calc(12px + env(safe-area-inset-bottom))}
+.pb-legal{color:var(--sub);font-size:13.5px}
+.pb-row .btn{flex:none;white-space:nowrap}
+.terms-box summary{display:flex;justify-content:space-between;align-items:baseline;cursor:pointer;list-style:none;font-family:var(--display);font-weight:600;font-size:22px}
+.terms-box summary::-webkit-details-marker{display:none}
+.terms-box summary::after{content:"Show";font-family:var(--body);font-size:14px;font-weight:700;color:var(--pine)}
+.terms-box[open] summary::after{content:"Hide"}
+.terms-box[open] .terms{margin-top:14px}

@@ -34,6 +34,16 @@ test('MVP scope: rentals run 3 to 14 days and cannot start today or earlier', ()
   assert.equal(R.validateDates('2027-03-01', '2027-03-05', NOW), 'past');
 });
 
+test('Timing: a booking cannot start before Little Roam has confirmed it (2 working hours)', () => {
+  assert.equal(R.earliestStart(NOW), '2027-03-02', 'Monday 10:00: confirmed by 12:00, so Tuesday');
+  const fri = new Date(2027, 2, 5, 17, 30);
+  assert.equal(R.earliestStart(fri), '2027-03-09', 'Friday 17:30: confirmed Monday 10:30, so Tuesday');
+  assert.equal(R.validateDates('2027-03-06', '2027-03-09', fri), 'too_soon');
+  assert.equal(R.validateDates('2027-03-09', '2027-03-11', fri), null);
+  const db = R.newDb();
+  assert.equal(R.createBooking(db, { ...base, start: '2027-03-06', end: '2027-03-09' }, fri).error, 'dates');
+});
+
 test('Story 1: an address outside the zone is a "no" and is logged as denied demand', () => {
   const db = R.newDb();
   const r = R.search(db, { ...base, postcode: '08901' }, NOW);

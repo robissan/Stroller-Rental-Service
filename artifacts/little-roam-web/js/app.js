@@ -52,7 +52,7 @@
     </div>`;
   const windows = () => C.windows.map(w => [w, win(w)]);
   const lines = (q, extra = '') => `<div class="lines">${q.lines.map(l => `<div><span>${esc(l.label)}</span><span>${l.amount ? eur(l.amount) : 'Included'}</span></div>`).join('')}${extra}</div>`;
-  const DATE_ERR = { missing: 'Enter both dates.', past: 'Pick a start date from tomorrow.', order: 'The return date is before the start date.', short: `Rentals are ${C.minDays} days or longer.`, long: `Rentals are ${C.maxDays} days or shorter.` };
+  const DATE_ERR = { missing: 'Choose your dates.', past: 'Pick a start date from tomorrow.', too_soon: 'That first day is too soon for us to confirm. Pick a later one.', order: 'The return date is before the start date.', short: `Rentals are ${C.minDays} days or longer.`, long: `Rentals are ${C.maxDays} days or shorter.` };
   const readForm = (form, into) => { for (const [k, v] of new FormData(form)) into[k] = typeof v === 'string' ? v.trim() : v; };
   const emailOk = s => /^\S+@\S+\.\S+$/.test(s || '');
 
@@ -90,7 +90,13 @@
           </div>
         </fieldset>
         ${del ? `<div class="two">${field('address', 'Address', F.address, { err: e.address, attrs: 'autocomplete="street-address"' })}${field('postcode', 'Postcode', F.postcode, { err: e.postcode, attrs: 'inputmode="numeric" autocomplete="postal-code" maxlength="5"' })}</div>` : ''}
-        <div class="two">${field('start', 'First day', F.start, { type: 'date', err: e.dates, attrs: `min="${tomorrow()}"` })}${field('end', 'Last day', F.end, { type: 'date', attrs: `min="${tomorrow()}"` })}</div>
+        <div class="field ${e.dates ? 'bad' : ''}">
+          <span class="legend" id="when-l">Dates and times</span>
+          <button type="button" class="when" id="when" data-act="cal-open" aria-describedby="when-l${e.dates ? ' when-err' : ''}">${F.start && F.end
+            ? `<b>${day(F.start)}, ${win(F.hw)}</b><span>to ${day(F.end)}, ${win(F.cw)}</span>`
+            : '<span class="ph">Choose dates</span>'}</button>
+          ${e.dates ? `<span class="err" id="when-err">${e.dates}</span>` : ''}
+        </div>
         ${select('age', "Child's age", F.age, AGES, { placeholder: 'Choose an age', err: e.age })}
         <button class="btn block" type="submit">Check availability</button>
       </form>
@@ -114,7 +120,7 @@
             <dt>Folded</dt><dd>${m.folded}</dd>
             <dt>Weighs</dt><dd>${m.weightKg} kg</dd>
           </dl>
-          <button class="btn block" data-act="f-continue">Continue</button>
+          <div class="pb-row"><div class="pb-sum"><b>${eur(q.total)}</b><span>${q.days} days, before extras</span></div><button class="btn" data-act="f-continue">Continue</button></div>
         </section>`;
     }
     const copy = {
@@ -142,15 +148,11 @@
         <section class="card"><h2>Add an accessory</h2>
           <div class="choice">${R.offeredAccessories().map(a => `<label><input type="checkbox" name="acc" value="${a.id}" ${F.acc.includes(a.id) ? 'checked' : ''}><span><b>${a.name}</b><span>Fits the ${C.model.name}</span></span><span class="amt">+${eur(C.accessoryPrice)}</span></label>`).join('')}</div>
         </section>
-        <section class="card"><h2>${F.method === 'delivery' ? 'Delivery and collection' : 'Pickup and return'}</h2>
-          <p>${F.method === 'delivery' ? `We come to ${esc(F.address)}, ${esc(F.postcode)}.` : `${C.pickup.name}, ${C.pickup.area}. We email the exact address.`} Pick a 2-hour window for each end.</p>
-          <div class="two">${select('hw', `${F.method === 'delivery' ? 'Arrives' : 'Pick up'} ${day(F.start)}`, F.hw, windows())}${select('cw', `${F.method === 'delivery' ? 'Collected' : 'Bring back'} ${day(F.end)}`, F.cw, windows())}</div>
-        </section>
         <section class="card"><h2>Your details</h2>
           ${field('name', 'Name', F.name, { err: e.name, attrs: 'autocomplete="name"' })}
           <div class="two">${field('email', 'Email', F.email, { type: 'email', err: e.email, attrs: 'autocomplete="email"' })}${field('phone', 'Phone', F.phone, { type: 'tel', err: e.phone, attrs: 'autocomplete="tel"' })}</div>
         </section>
-        <button class="btn block" type="submit">Review price</button>
+        <div class="paybar" id="paybar"><div class="pb-row"><div class="pb-sum"><b data-running>${eur(R.quote(F.start, F.end, F.acc, F.method).total)}</b><span data-running-note>${runningNote(F.acc)}</span></div><button class="btn" type="submit">Review price</button></div></div>
       </form>
     </main>`;
   }
@@ -160,6 +162,7 @@
       ${stepper(fSteps, 1)}
       <a class="back" href="#flying" data-act="f-details">Back to your details</a>
       <h1>Review and pay</h1>
+      ${deadlineCard()}
       <section class="card" id="summary">
         <div class="spread"><h2>${C.model.name} stroller</h2><span>${day(F.start)} to ${day(F.end)}</span></div>
         ${lines(q, `<div class="sum"><span>Total to pay now</span><span data-total>${eur(q.total)}</span></div><div class="sub"><span>Card hold, not charged</span><span>${eur(q.hold)}</span></div>`)}
@@ -168,11 +171,18 @@
       <section class="card"><h2>${F.method === 'delivery' ? 'Delivery' : 'Pickup'}</h2>
         <dl class="specs"><dt>${F.method === 'delivery' ? 'Arrives' : 'Pick up'}</dt><dd>${day(F.start)}, ${win(F.hw)}</dd><dt>${F.method === 'delivery' ? 'Collected' : 'Bring back'}</dt><dd>${day(F.end)}, ${win(F.cw)}</dd><dt>Where</dt><dd>${F.method === 'delivery' ? `${esc(F.address)}, ${esc(F.postcode)}` : `${C.pickup.name}, ${C.pickup.area}`}</dd></dl>
       </section>
-      <section class="card"><h2>Terms</h2>${termsHtml()}</section>
+      <section class="card"><details class="terms-box"><summary>All terms</summary>${termsHtml()}</details></section>
       ${F.err.pay ? `<p class="err" role="alert">${F.err.pay}</p>` : ''}
-      <button class="btn block" data-act="f-pay">Pay ${eur(q.total)}</button>
-      <p class="hint" style="text-align:center">Demo: no card is taken and no money moves.</p>
+      <div class="paybar"><div class="pb-row"><div class="pb-sum"><b>${eur(q.total)}</b><span>${runningNote(F.acc)}</span></div><button class="btn" data-act="f-pay">Pay ${eur(q.total)}</button></div>
+        <p class="pb-legal">By paying you agree to pay the total shown and to the terms above. Demo: no card is taken and no money moves.</p></div>
     </main>`;
+  }
+  const runningNote = acc => [`${R.rentalDays(F.start, F.end)} days`, ...acc.map(id => C.accessories.find(a => a.id === id).name.toLowerCase())].join(' + ');
+  function deadlineCard() {
+    const del = F.method === 'delivery', freeUntil = new Date(R.at(F.start, F.hw).getTime() - C.freeCancelHours * 36e5);
+    return now() < freeUntil
+      ? `<section class="card sky" id="deadline"><h2>Free cancellation until ${when(freeUntil)}</h2><p>After that, ${C.lateCancelRefundPct}% back until ${del ? 'delivery' : 'pickup'}. Nothing back once you have the stroller.</p></section>`
+      : `<section class="card sky" id="deadline"><h2>Cancelling gives ${C.lateCancelRefundPct}% back</h2><p>Your ${del ? 'delivery' : 'pickup'} is less than ${C.freeCancelHours} hours away. Nothing back once you have the stroller.</p></section>`;
   }
   function viewFlying() { return header('flying') + (F.step === 'details' ? flyingDetails() : F.step === 'review' ? flyingReview() : flyingCheck()); }
 
@@ -231,13 +241,10 @@
         ${b.rating ? `<p role="status">Thanks. You rated this rental ${b.rating} out of 5.</p>` : `<div class="stars" role="group" aria-label="Rate from 1 to 5">${[1, 2, 3, 4, 5].map(n => `<button data-act="b-rate" data-n="${n}" aria-label="${n} out of 5">${n}</button>`).join('')}</div>`}</section>` : ''}
 
       ${live ? `<section class="card" id="manage"><h2>Change or cancel</h2>
-        ${B.panel === 'change' ? `<form data-act="b-change-save" novalidate style="display:grid;gap:12px">
-            <div class="two">${field('start', 'First day', b.start, { type: 'date', err: B.err, attrs: `min="${tomorrow()}"` })}${field('end', 'Last day', b.end, { type: 'date', attrs: `min="${tomorrow()}"` })}</div>
-            <div class="row"><button class="btn" type="submit">Save new dates</button><button class="btn ghost" type="button" data-act="b-panel" data-panel="">Keep my dates</button></div></form>`
-        : B.panel === 'cancel' ? `<div id="cancel-panel" style="display:grid;gap:12px"><p><b>You'll get ${eur(terms.refund)} back (${terms.pct}%).</b> ${terms.pct === 100 ? `It's more than ${C.freeCancelHours} hours before handoff, so cancelling is free.` : `It's less than ${C.freeCancelHours} hours before handoff.`} The card hold is released.</p>
+        ${B.panel === 'cancel' ? `<div id="cancel-panel" style="display:grid;gap:12px"><p><b>You'll get ${eur(terms.refund)} back (${terms.pct}%).</b> ${terms.pct === 100 ? `It's more than ${C.freeCancelHours} hours before handoff, so cancelling is free.` : `It's less than ${C.freeCancelHours} hours before handoff.`} The card hold is released.</p>
             <div class="row"><button class="btn danger" data-act="b-cancel-yes">Cancel booking</button><button class="btn ghost" data-act="b-panel" data-panel="">Keep booking</button></div></div>`
         : `<p>${R.canChangeDates(b, now()) ? `Free until ${when(new Date(R.handoffAt(b).getTime() - C.freeCancelHours * 36e5))}.` : b.status === 'dispatched' ? `The stroller is on its way, so the dates can't change. You can still cancel for ${terms.pct}% back.` : `Dates can't change in the last ${C.freeCancelHours} hours. You can still cancel for ${terms.pct}% back.`}</p>
-           <div class="row">${R.canChangeDates(b, now()) ? '<button class="btn ghost" data-act="b-panel" data-panel="change">Change dates</button>' : ''}<button class="btn danger" data-act="b-panel" data-panel="cancel">Cancel booking</button></div>`}
+           <div class="row">${R.canChangeDates(b, now()) ? '<button class="btn ghost" data-act="b-change">Change dates</button>' : ''}<button class="btn danger" data-act="b-panel" data-panel="cancel">Cancel booking</button></div>`}
       </section>` : ''}
 
       <section class="card"><h2>Activity</h2><ul class="log">${b.events.map(e => `<li>${when(e.at)}: ${esc(e.text)}</li>`).join('')}</ul></section>
@@ -415,6 +422,64 @@
     </main>`;
   }
 
+  /* ================= calendar sheet: dates and 2-hour windows in one place ================= */
+  const CALROOT = document.createElement('dialog');
+  CALROOT.className = 'cal'; CALROOT.setAttribute('aria-labelledby', 'cal-title');
+  document.body.appendChild(CALROOT);
+  let CAL = null;
+  const longDay = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const monthName = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' });
+  function openCal(o) {
+    const earliest = R.earliestStart(now());
+    CAL = { hw: '10:00', cw: '10:00', ...o, earliest, err: null, month: (o.start || earliest).slice(0, 7) };
+    renderCal();
+    if (!CALROOT.open) CALROOT.showModal();
+    const f = CALROOT.querySelector('.day.s') || CALROOT.querySelector('.day:not([disabled])'); if (f) f.focus();
+  }
+  function closeCal() { if (CALROOT.open) CALROOT.close(); CAL = null; }
+  function dayOff(d) {
+    if (d < CAL.earliest) return true;
+    if (CAL.start && !CAL.end && d > CAL.start) { const n = R.rentalDays(CAL.start, d); return n < C.minDays || n > C.maxDays; }
+    return false;
+  }
+  function renderCal(focusDay) {
+    const c = CAL, [y, m] = c.month.split('-').map(Number), first = new Date(y, m - 1, 1);
+    const cells = Array.from({ length: (first.getDay() + 6) % 7 }, () => '<span aria-hidden="true"></span>');
+    for (let n = 1; n <= new Date(y, m, 0).getDate(); n++) {
+      const d = R.iso(new Date(y, m - 1, n)), s = d === c.start, e = d === c.end, r = c.start && c.end && d > c.start && d < c.end;
+      cells.push(`<button type="button" class="day${s ? ' s' : ''}${e ? ' e' : ''}${r ? ' r' : ''}" data-day="${d}" ${dayOff(d) ? 'disabled' : ''} aria-pressed="${s || e}" aria-label="${longDay.format(R.parse(d))}${s ? ', first day' : e ? ', last day' : ''}">${n}</button>`);
+    }
+    const del = c.method !== 'pickup';
+    const sum = c.start && c.end ? `${day(c.start)} to ${day(c.end)}: ${R.rentalDays(c.start, c.end)} days, both days count`
+      : c.start ? `${day(c.start)}. Now pick your last day, ${C.minDays} to ${C.maxDays} days in all.` : 'Pick your first day.';
+    const chips = (name, legend, val) => `<fieldset class="chips"><legend class="legend">${legend}</legend><div>${C.windows.map(w => `<label><input type="radio" name="${name}" value="${w}" ${w === val ? 'checked' : ''}><span>${win(w)}</span></label>`).join('')}</div></fieldset>`;
+    CALROOT.innerHTML = `<div class="cal-in" data-month="${c.month}">
+      <div class="cal-head"><h2 id="cal-title">${c.windows ? 'Dates and times' : 'Change dates'}</h2><button type="button" class="x" data-cal="close" aria-label="Close">✕</button></div>
+      <p class="cal-sum" aria-live="polite">${sum}</p>
+      <div class="cal-nav"><button type="button" data-cal="prev" aria-label="Previous month" ${c.month > c.earliest.slice(0, 7) ? '' : 'disabled'}>‹</button><b>${monthName.format(first)}</b><button type="button" data-cal="next" aria-label="Next month">›</button></div>
+      <div class="grid">${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(w => `<span class="wd" aria-hidden="true">${w}</span>`).join('')}${cells.join('')}</div>
+      <p class="hint">Earliest ${del ? 'delivery' : 'pickup'}: ${day(c.earliest)}. We confirm each booking first, within ${C.confirmWorkingHours} working hours, Monday to Friday.</p>
+      ${c.windows ? chips('hw', `${del ? 'Delivered' : 'Pick up'}${c.start ? ', ' + day(c.start) : ''}`, c.hw) + chips('cw', `${del ? 'Collected' : 'Bring back'}${c.end ? ', ' + day(c.end) : ''}`, c.cw) : ''}
+      ${c.err ? `<p class="err" role="alert">${c.err}</p>` : ''}
+      <div class="cal-foot"><button type="button" class="btn ghost small" data-cal="clear">Clear</button><button type="button" class="btn" data-cal="save" ${c.start && c.end ? '' : 'disabled'}>Save</button></div>
+    </div>`;
+    if (focusDay) { const b = CALROOT.querySelector(`[data-day="${focusDay}"]`); if (b) b.focus(); }
+  }
+  CALROOT.addEventListener('click', ev => {
+    const b = ev.target.closest('button'); if (!b || !CAL) return;
+    const c = CAL, d = b.dataset.day, a = b.dataset.cal;
+    if (d) { if (!c.start || c.end || d <= c.start) { c.start = d; c.end = null; } else c.end = d; c.err = null; return renderCal(d); }
+    if (a === 'close') return closeCal();
+    if (a === 'prev' || a === 'next') {
+      const [y, m] = c.month.split('-').map(Number); c.month = R.iso(new Date(y, m - 1 + (a === 'next' ? 1 : -1), 1)).slice(0, 7);
+      renderCal(); const nb = CALROOT.querySelector(`[data-cal="${a}"]:not([disabled])`); if (nb) nb.focus(); return;
+    }
+    if (a === 'clear') { c.start = c.end = null; c.err = null; return renderCal(); }
+    if (a === 'save') c.onSave(c);
+  });
+  CALROOT.addEventListener('change', ev => { if (CAL && (ev.target.name === 'hw' || ev.target.name === 'cw')) CAL[ev.target.name] = ev.target.value; });
+  CALROOT.addEventListener('close', () => { CAL = null; });
+
   /* ================= routing ================= */
   function current() {
     const h = location.hash.slice(1);
@@ -472,6 +537,13 @@
       F.res = R.search(db, { method: F.method, postcode: F.postcode, start: F.start, end: F.end, ageMonths: Number(F.age) }, now()); save();
       render('result');
     },
+    'cal-open'(el) {
+      readForm(el.form, F);
+      openCal({ method: F.method, start: F.start || null, end: F.end || null, hw: F.hw, cw: F.cw, windows: true, onSave(c) {
+        Object.assign(F, { start: c.start, end: c.end, hw: c.hw, cw: c.cw, res: null }); F.err = { ...F.err, dates: null };
+        closeCal(); render(); const w = document.getElementById('when'); if (w) w.focus();
+      } });
+    },
     'f-waitlist'(form) {
       const email = new FormData(form).get('wl');
       const r = R.joinWaitlist(db, String(email || '').trim(), { reason: F.res.reason, postcode: F.postcode, start: F.start, end: F.end }, now());
@@ -493,11 +565,13 @@
     },
     /* Booking page */
     'b-panel'(el) { B.panel = el.dataset.panel || null; B.err = null; B.msg = null; render(B.panel === 'cancel' ? 'cancel-panel' : null); },
-    'b-change-save'(form) {
-      const v = {}; readForm(form, v);
-      const r = R.changeDates(db, curId(), v.start, v.end, now());
-      if (!r.ok) { B.err = r.error === 'dates' ? DATE_ERR[r.dateError] : r.error === 'full' ? 'No stroller is free for those dates. Your booking is unchanged.' : `Dates can't change in the last ${C.freeCancelHours} hours.`; return render(); }
-      save(); B.panel = null; B.msg = `Dates changed. ${r.diff > 0 ? `${eur(r.diff)} charged.` : r.diff < 0 ? `${eur(-r.diff)} refunded.` : 'No price change.'}`; render();
+    'b-change'() {
+      const id = curId(), b = R.booking(db, id); B.msg = null; B.panel = null;
+      openCal({ method: b.method, start: b.start, end: b.end, windows: false, onSave(c) {
+        const r = R.changeDates(db, id, c.start, c.end, now());
+        if (!r.ok) { c.err = r.error === 'dates' ? DATE_ERR[r.dateError] : r.error === 'full' ? 'No stroller is free for those dates. Your booking is unchanged.' : `Dates can't change in the last ${C.freeCancelHours} hours.`; return renderCal(); }
+        save(); closeCal(); B.msg = `Dates changed. ${r.diff > 0 ? `${eur(r.diff)} charged.` : r.diff < 0 ? `${eur(-r.diff)} refunded.` : 'No price change.'}`; render();
+      } });
     },
     'b-cancel-yes'() { const r = R.cancelBooking(db, curId(), now()); save(); B.panel = null; B.msg = r.ok ? `Booking cancelled. ${eur(r.refund)} refunded.` : "This booking can't be cancelled now."; render(); },
     'b-rate'(el) { R.rate(db, curId(), Number(el.dataset.n), now()); save(); render(); },
@@ -570,6 +644,12 @@
   });
   APP.addEventListener('change', ev => {
     const a = ev.target.dataset.change; if (a) return acts[a](ev.target);
+    if (ev.target.name === 'acc') {
+      const acc = [...ev.target.form.querySelectorAll('input[name="acc"]:checked')].map(i => i.value);
+      ev.target.form.querySelector('[data-running]').textContent = eur(R.quote(F.start, F.end, acc, F.method).total);
+      ev.target.form.querySelector('[data-running-note]').textContent = runningNote(acc);
+      return;
+    }
     if (ev.target.id === 'age' && ev.target.form && ev.target.form.dataset.act === 'p-plan') acts['p-age'](ev.target);
   });
   window.addEventListener('hashchange', route);

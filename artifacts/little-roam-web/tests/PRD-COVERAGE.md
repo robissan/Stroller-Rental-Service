@@ -1,6 +1,6 @@
 # PRD v2 coverage
 
-What the tests check against the PRD, and where the demo stops short. Last run: 22 rule tests and 30 browser tests, all passing.
+What the tests check against the PRD, and where the demo stops short. Last run: 23 rule tests and 34 browser tests, all passing.
 
     node --test tests/rules.test.js          # pricing and policy rules, no browser
     pytest tests/test_flows.py               # the flows in a browser; writes tests/screenshots/
@@ -28,6 +28,18 @@ Status: **Met** = built and tested. **Simulated** = the screen and rule exist, b
 | 8 | Collection booked at checkout | Met | story 4 and 5 tests | `s4-summary-and-terms` |
 | 8 | Return photo taken at collection | Simulated: a required tick box, no photo upload | `test_story8_return_photo_inspection_and_hold_release` | `op-4-return-inspection` |
 | 8 | Hold released within 3 working days if no damage | Simulated: the date is computed and shown; no real card hold | same, `test_story8_parent_view_after_a_clean_return` | `s8-returned-hold-released` |
+
+## Changes from the Mobbin benchmark
+
+Patterns taken from Turo, Uber, Careem, Airbnb and Starbucks flows on Mobbin.
+
+| Change | Pattern from | Test | Screenshot |
+|---|---|---|---|
+| A booking can't start before Little Roam has confirmed it (2 working hours, Monday to Friday) | Fixes a gap in the PRD's own confirm-then-dispatch flow | `test_timing_a_friday_evening_booking_cannot_start_before_we_confirm`, rule test "Timing" | `s1-date-sheet-earliest` |
+| One sheet for the date range and both 2-hour windows; days outside 3 to 14 days are greyed out | Turo trip dates, Uber rental calendar | `test_story1_date_sheet_only_offers_3_to_14_day_rentals_with_windows` | `s1-date-sheet` |
+| The total sits next to the main button and updates as extras are ticked | Careem "Book car (total)", Airbnb and Starbucks bottom bars | `test_running_total_sits_next_to_the_main_button` | `s3-running-total` |
+| The review opens with the exact free-cancellation cut-off; the full terms fold away; one agreement line under the pay button | Turo and Airbnb checkout | `test_review_leads_with_the_exact_free_cancellation_deadline`, `test_review_says_plainly_when_free_cancellation_has_already_passed` | `s4-review-deadline` |
+| Change dates uses the same sheet | Turo trip dates | `test_story6_change_dates_from_the_confirmation_link` | `s6-change-dates` |
 
 ## Operator stories and flow
 

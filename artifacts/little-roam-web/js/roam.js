@@ -98,9 +98,12 @@
     if (a > m.maxMonths) return { ok: false, reason: 'too_old' };
     return { ok: true };
   }
+  /** The first day a stroller can arrive: the day after Little Roam's confirmation deadline (2 working hours). */
+  const earliestStart = now => addDays(iso(addWorkingHours(now, CFG.confirmWorkingHours)), 1);
   function validateDates(start, end, now) {
     if (!start || !end) return 'missing';
     if (start <= iso(new Date(now))) return 'past';
+    if (start < earliestStart(now)) return 'too_soon';
     if (end < start) return 'order';
     const n = rentalDays(start, end);
     if (n < CFG.minDays) return 'short';
@@ -428,7 +431,7 @@
   return {
     CFG, iso, parse, addDays, diffDays, rentalDays, at, addWorkingDays, addWorkingHours, windowEnd,
     newDb, unit, booking, sub, BLOCKED, ACTIVE,
-    inZone, fit, validateDates, freeUnits, offeredAccessories, search, joinWaitlist, quote,
+    inZone, fit, earliestStart, validateDates, freeUnits, offeredAccessories, search, joinWaitlist, quote,
     createBooking, handoffAt, cancellationTerms, cancelBooking, canChangeDates, changeDates, rate,
     confirmBooking, declineBooking, assignUnit, inspectUnit, cleanUnit, setUnitStatus, inspectionValid, dispatch,
     recordHandoff, reportFaulty, recordCollection, markLost, inspectReturn,
